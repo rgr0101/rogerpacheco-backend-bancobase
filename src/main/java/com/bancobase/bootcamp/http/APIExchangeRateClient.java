@@ -3,9 +3,13 @@ package com.bancobase.bootcamp.http;
 import com.bancobase.bootcamp.dto.response.*;
 import com.bancobase.bootcamp.exceptions.ServiceProviderException;
 import org.springframework.http.*;
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+//vemos que datos vienen en el json de las apis con el navegador
+
+@Service
 public class APIExchangeRateClient {
 
     private final RestTemplate restTemplate = new RestTemplate();
@@ -35,8 +39,27 @@ public class APIExchangeRateClient {
                 .build();
     }
 
+    //consumimos la api de symbols
     public SymbolsNameResponse getSymbolsName() {
-        // TODO: Implementa tu código aquí :D
-        return new SymbolsNameResponse();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        String url = UriComponentsBuilder
+                .fromHttpUrl("https://api.exchangerate.host/symbols")
+                .toUriString();
+
+        HttpEntity<String> headersAndBody = new HttpEntity<>(headers);
+
+        ResponseEntity<SymbolsNameResponse> responseEntity = this.restTemplate
+                .exchange(url, HttpMethod.GET, headersAndBody, SymbolsNameResponse.class);
+
+        if (responseEntity.getStatusCode().is2xxSuccessful()) {
+            return responseEntity.getBody();
+        }
+
+        throw ServiceProviderException
+                .builder()
+                .message("Oh no! An error occurred while connecting to our exchange rate provider.")
+                .build();
     }
 }
